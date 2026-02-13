@@ -47,6 +47,8 @@ async function main() {
       case 'project':
         if (subcommand === 'list' || !subcommand) {
           await cmd.listProjects();
+        } else if (subcommand === 'colors') {
+          await cmd.listColors();
         } else if (subcommand === 'add') {
           // Parse options: --color #hex --description "text"
           const options = {};
