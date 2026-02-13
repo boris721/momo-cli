@@ -44,6 +44,10 @@ async function main() {
         await cmd.showStatus();
         break;
       
+      case 'colors':
+        await cmd.listColors();
+        break;
+        
       case 'project':
         if (subcommand === 'list' || !subcommand) {
           await cmd.listProjects();
