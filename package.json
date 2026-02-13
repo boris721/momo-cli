@@ -9,7 +9,18 @@
   "scripts": {
     "test": "node --test test/*.test.js"
   },
-  "keywords": ["momo", "timetracking", "cli"],
-  "author": "boris721",
-  "license": "MIT"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boris721/momo-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/boris721/momo-cli/issues"
+  },
+  "homepage": "https://github.com/boris721/momo-cli#readme",
+  "keywords": ["momo", "momo.coach", "timetracking", "cli", "stopwatch"],
+  "author": "Boris & Paul Panserrieu",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

@@ -78,8 +78,6 @@ Endpoints:
 npm test
 ```
 
----
+## License
 
-**Generated with:** `anthropic/claude-opus-4-5`
-
-**Prompt:** Create a CLI tool for momo.coach API with stopwatch and time logging commands.
+MIT © Boris & Paul Panserrieu
