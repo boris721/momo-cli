@@ -44,6 +44,10 @@ async function main() {
         await cmd.showStatus();
         break;
       
+      case 'colors':
+        await cmd.listColors();
+        break;
+        
       case 'project':
         if (subcommand === 'list' || !subcommand) {
           await cmd.listProjects();
@@ -73,6 +77,12 @@ async function main() {
           console.error('       momo project add <name> [--color #hex] [--description "text"]');
           process.exit(1);
         }
+        break;
+        
+      case 'version':
+      case '--version':
+      case '-v':
+        console.log('momo-cli v1.0.0');
         break;
         
       case 'help':
