@@ -1,0 +1,15 @@
+{
+  "name": "momo-cli",
+  "version": "1.0.0",
+  "description": "CLI for momo.coach time tracking API",
+  "type": "module",
+  "bin": {
+    "momo": "./bin/momo"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": ["momo", "timetracking", "cli"],
+  "author": "boris721",
+  "license": "MIT"
+}

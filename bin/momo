@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+
+import * as cmd from '../lib/commands.js';
+
+const args = process.argv.slice(2);
+const command = args[0];
+const subcommand = args[1];
+
+async function main() {
+  try {
+    switch (command) {
+      case 'auth':
+        if (subcommand === 'status') {
+          await cmd.authStatus();
+        } else if (args[1] && args[2]) {
+          await cmd.authSave(args[1], args[2]);
+        } else {
+          console.error('Usage: momo auth <secret> <clientid>');
+          console.error('       momo auth status');
+          process.exit(1);
+        }
+        break;
+        
+      case 'sw':
+        if (!subcommand) {
+          await cmd.stopwatchStatus();
+        } else if (subcommand === 'start') {
+          await cmd.stopwatchStart();
+        } else if (subcommand === 'pause') {
+          await cmd.stopwatchPause();
+        } else if (subcommand === 'stop') {
+          await cmd.stopwatchStop();
+        } else {
+          console.error('Usage: momo sw [start|pause|stop]');
+          process.exit(1);
+        }
+        break;
+        
+      case 'log':
+        await cmd.logTime(args.slice(1));
+        break;
+        
+      case 'status':
+        await cmd.showStatus();
+        break;
+        
+      case 'help':
+      case '--help':
+      case '-h':
+        cmd.showHelp();
+        break;
+        
+      case undefined:
+        cmd.showHelp();
+        break;
+        
+      default:
+        console.error(`Unknown command: ${command}`);
+        console.error('Run: momo help');
+        process.exit(1);
+    }
+  } catch (err) {
+    if (err.name === 'ApiError') {
+      console.error(`✗ ${err.message}`);
+    } else {
+      console.error(`✗ Error: ${err.message}`);
+    }
+    process.exit(1);
+  }
+}
+
+main();
