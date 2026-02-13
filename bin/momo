@@ -43,6 +43,35 @@ async function main() {
       case 'status':
         await cmd.showStatus();
         break;
+      
+      case 'project':
+        if (subcommand === 'list' || !subcommand) {
+          await cmd.listProjects();
+        } else if (subcommand === 'add') {
+          // Parse options: --color #hex --description "text"
+          const options = {};
+          const projectArgs = args.slice(2);
+          let name = null;
+          
+          for (let i = 0; i < projectArgs.length; i++) {
+            if (projectArgs[i] === '--color' && projectArgs[i + 1]) {
+              options.color = projectArgs[i + 1];
+              i++;
+            } else if (projectArgs[i] === '--description' && projectArgs[i + 1]) {
+              options.description = projectArgs[i + 1];
+              i++;
+            } else if (!projectArgs[i].startsWith('--')) {
+              name = projectArgs[i];
+            }
+          }
+          
+          await cmd.addProject(name, options);
+        } else {
+          console.error('Usage: momo project list');
+          console.error('       momo project add <name> [--color #hex] [--description "text"]');
+          process.exit(1);
+        }
+        break;
         
       case 'help':
       case '--help':
