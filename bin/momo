@@ -79,6 +79,12 @@ async function main() {
         }
         break;
         
+      case 'version':
+      case '--version':
+      case '-v':
+        console.log('momo-cli v1.0.0');
+        break;
+        
       case 'help':
       case '--help':
       case '-h':

@@ -1,29 +1,59 @@
-# momo-cli
+# ⏱️ momo-cli
 
-CLI for [momo.coach](https://momo.coach) time tracking API.
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Installation
+**Command-line interface for [momo.coach](https://momo.coach) time tracking.**
+
+Track your work hours from the terminal. Start a stopwatch, log time to projects, and view your daily timelogs — all without leaving the command line.
+
+---
+
+## ✨ Features
+
+- **Stopwatch** — Start, pause, and stop a running timer
+- **Time logging** — Log time to projects with descriptions
+- **Manual entries** — Add time entries directly (HH:MM format)
+- **Daily status** — View today's timelogs with colored project indicators
+- **Project management** — List and create projects with custom colors
+- **Zero dependencies** — Uses only Node.js built-in modules (native `fetch`)
+- **Config-driven** — Credentials stored in `~/.config/momo-cli/`
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+ (uses native `fetch`)
+- A [momo.coach](https://momo.coach) account
+
+### Installation
 
 ```bash
-git clone https://github.com/boris721/momo-cli
+# Clone the repository
+git clone https://github.com/boris721/momo-cli.git
 cd momo-cli
+
+# Make it available globally
 npm link
 ```
 
-## Setup
+### Setup
 
-Get your API credentials from momo.coach settings, then:
+Get your API credentials from your momo.coach account settings, then:
 
 ```bash
+# Store credentials
 momo auth <secret_key> <client_id>
-```
 
-Verify with:
-```bash
+# Verify authentication
 momo auth status
 ```
 
-## Usage
+---
+
+## 🔧 CLI Commands
 
 ### Stopwatch
 
@@ -36,48 +66,119 @@ momo sw stop         # Stop and reset stopwatch
 
 ### Logging Time
 
-Using the stopwatch:
 ```bash
+# Using the stopwatch (logs elapsed time, then resets)
 momo sw start
 # ... work ...
 momo log myproject "What I worked on"
-# Logs elapsed time and resets stopwatch
-```
 
-Manual time entry:
-```bash
+# Manual time entry
 momo log 01:30 myproject "1.5 hours of work"
 ```
 
-### Other Commands
+### Daily Status
 
 ```bash
-momo status          # Show today's timelogs
-momo help            # Show help
+momo status
 ```
 
-## Configuration
+Output:
+```
+Timelogs for 2026-02-13:
+  ██  01:00  [momo]      "API development"
+  ██  00:30  [momo-cli]  "CLI improvements"
+  ██  00:45  [admin]     "Email setup"
+  ─────────────────────────
+  02:15  TOTAL
+```
 
-Credentials are stored in `~/.config/momo-cli/config.json`
+Each timelog shows a colored square matching the project color.
 
-## API Reference
+### Projects
 
-- Base URL: `https://api.momo.coach`
-- Auth: `Authorization: Bearer <secret>` + `Clientid: <client_id>`
+```bash
+momo project list                              # List all projects
+momo project add "New Project"                 # Create project
+momo project add "Client X" --color #3498db    # With color
+momo project add "Side Project" --description "Weekend hacking"
+```
 
-Endpoints:
-- `GET /stopwatch` - Get stopwatch state
-- `POST /stopwatch` - Start stopwatch
-- `PUT /stopwatch` - Pause stopwatch
-- `DELETE /stopwatch` - Stop/reset stopwatch
-- `POST /time` - Create timelog
+### Colors
 
-## Development
+```bash
+momo colors          # Show available colors for projects
+```
+
+### Other
+
+```bash
+momo help            # Show help
+momo --version       # Show version
+```
+
+---
+
+## ⚙️ Configuration
+
+Credentials are stored in `~/.config/momo-cli/config.json`:
+
+```json
+{
+  "secret": "sk-...",
+  "clientId": "momo-..."
+}
+```
+
+---
+
+## 🏗️ Architecture
+
+```
+bin/
+  momo               # CLI entry point
+lib/
+  api.js             # HTTP client for momo.coach API
+  commands.js        # Command implementations
+  config.js          # Config loading/saving
+  format.js          # Time formatting utilities
+test/
+  *.test.js          # Unit tests
+```
+
+---
+
+## 📡 API Reference
+
+Base URL: `https://api.momo.coach`
+
+Authentication headers:
+- `Authorization: Bearer <secret>`
+- `Clientid: <client_id>`
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/stopwatch` | GET | Get stopwatch state |
+| `/stopwatch` | POST | Start stopwatch |
+| `/stopwatch` | PUT | Pause stopwatch |
+| `/stopwatch` | DELETE | Stop/reset stopwatch |
+| `/time` | POST | Create timelog |
+| `/time/range/from/{from}/to/{to}` | GET | Get timelogs for date range |
+| `/project` | GET | List projects |
+| `/project` | POST | Create project |
+| `/color` | GET | List available colors |
+
+---
+
+## 🧪 Testing
 
 ```bash
 npm test
 ```
 
-## License
+Tests use Node.js built-in test runner.
 
-MIT © Boris & Paul Panserrieu
+---
+
+## 📄 License
+
+[MIT](LICENSE) © 2026 Boris & Paul Panserrieu
