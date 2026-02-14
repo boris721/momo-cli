@@ -15,9 +15,11 @@ Track your work hours from the terminal. Start a stopwatch, log time to projects
 - **Time logging** — Log time to projects with descriptions
 - **Manual entries** — Add time entries directly (HH:MM format)
 - **Daily status** — View today's timelogs with colored project indicators
-- **Project management** — List and create projects with custom colors
+- **Project CRUD** — Create, list, update, and delete projects with custom colors
+- **Timelog management** — Delete incorrect timelogs
 - **Zero dependencies** — Uses only Node.js built-in modules (native `fetch`)
 - **Config-driven** — Credentials stored in `~/.config/momo-cli/`
+- **AI-friendly** — Full CLI for automation and AI assistants 🤖
 
 ---
 
@@ -79,7 +81,8 @@ momo log 01:30 myproject "1.5 hours of work"
 ### Daily Status
 
 ```bash
-momo status
+momo status          # Show today's timelogs
+momo status --ids    # Show timelogs with IDs (for deletion)
 ```
 
 Output:
@@ -94,6 +97,13 @@ Timelogs for 2026-02-13:
 
 Each timelog shows a colored square matching the project color.
 
+### Delete Timelogs
+
+```bash
+momo status --ids                              # Get timelog IDs
+momo timelog delete <id> --force               # Delete a timelog
+```
+
 ### Projects
 
 ```bash
@@ -101,6 +111,9 @@ momo project list                              # List all projects
 momo project add "New Project"                 # Create project
 momo project add "Client X" --color #3498db    # With color
 momo project add "Side Project" --description "Weekend hacking"
+momo project update "Client X" --color #e74c3c # Update color
+momo project update "Client X" --description "New desc"
+momo project delete "Old Project" --force      # Delete project
 ```
 
 ### Colors
@@ -162,9 +175,12 @@ Authentication headers:
 | `/stopwatch` | PUT | Pause stopwatch |
 | `/stopwatch` | DELETE | Stop/reset stopwatch |
 | `/time` | POST | Create timelog |
+| `/time/delete` | POST | Delete timelog `{id}` |
 | `/time/range/from/{from}/to/{to}` | GET | Get timelogs for date range |
 | `/project` | GET | List projects |
 | `/project` | POST | Create project |
+| `/project` | PUT | Update project |
+| `/project/delete` | POST | Delete project `{id}` |
 | `/color` | GET | List available colors |
 
 ---
