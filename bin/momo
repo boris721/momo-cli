@@ -48,15 +48,11 @@ async function main() {
         await cmd.listColors();
         break;
         
-      case 'project':
-        if (subcommand === 'list' || !subcommand) {
-          await cmd.listProjects();
-        } else if (subcommand === 'colors') {
-          await cmd.listColors();
-        } else if (subcommand === 'add') {
-          // Parse options: --color #hex --description "text"
+      case 'project': {
+        // Parse options for project commands
+        const parseProjectOptions = (startIndex) => {
           const options = {};
-          const projectArgs = args.slice(2);
+          const projectArgs = args.slice(startIndex);
           let name = null;
           
           for (let i = 0; i < projectArgs.length; i++) {
@@ -66,23 +62,43 @@ async function main() {
             } else if (projectArgs[i] === '--description' && projectArgs[i + 1]) {
               options.description = projectArgs[i + 1];
               i++;
+            } else if (projectArgs[i] === '--force') {
+              options.force = true;
             } else if (!projectArgs[i].startsWith('--')) {
               name = projectArgs[i];
             }
           }
           
+          return { name, options };
+        };
+        
+        if (subcommand === 'list' || !subcommand) {
+          await cmd.listProjects();
+        } else if (subcommand === 'colors') {
+          await cmd.listColors();
+        } else if (subcommand === 'add') {
+          const { name, options } = parseProjectOptions(2);
           await cmd.addProject(name, options);
+        } else if (subcommand === 'update') {
+          const { name, options } = parseProjectOptions(2);
+          await cmd.updateProject(name, options);
+        } else if (subcommand === 'delete') {
+          const { name, options } = parseProjectOptions(2);
+          await cmd.deleteProject(name, options);
         } else {
           console.error('Usage: momo project list');
           console.error('       momo project add <name> [--color #hex] [--description "text"]');
+          console.error('       momo project update <name> [--color #hex] [--description "text"]');
+          console.error('       momo project delete <name> [--force]');
           process.exit(1);
         }
         break;
+      }
         
       case 'version':
       case '--version':
       case '-v':
-        console.log('momo-cli v1.0.0');
+        console.log('momo-cli v1.1.0');
         break;
         
       case 'help':
