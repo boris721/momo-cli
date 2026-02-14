@@ -41,7 +41,22 @@ async function main() {
         break;
         
       case 'status':
-        await cmd.showStatus();
+        if (args.includes('--ids')) {
+          await cmd.showStatusWithIds();
+        } else {
+          await cmd.showStatus();
+        }
+        break;
+      
+      case 'timelog':
+        if (subcommand === 'delete') {
+          const id = args[2];
+          const force = args.includes('--force');
+          await cmd.deleteTimelog(id, { force });
+        } else {
+          console.error('Usage: momo timelog delete <id> [--force]');
+          process.exit(1);
+        }
         break;
       
       case 'colors':
@@ -98,7 +113,7 @@ async function main() {
       case 'version':
       case '--version':
       case '-v':
-        console.log('momo-cli v1.1.0');
+        console.log('momo-cli v1.2.0');
         break;
         
       case 'help':
