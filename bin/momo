@@ -1,10 +1,23 @@
 #!/usr/bin/env node
 
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import * as cmd from '../lib/commands.js';
+import { extractProfile } from '../lib/commands.js';
 
-const args = process.argv.slice(2);
-const command = args[0];
-const subcommand = args[1];
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
+const VERSION = pkg.version;
+
+const rawArgs = process.argv.slice(2);
+const command = rawArgs[0];
+const subcommand = rawArgs[1];
+
+function withProfile(args) {
+  const { profileName, remainingArgs } = extractProfile(args);
+  return { profileName, args: remainingArgs };
+}
 
 async function main() {
   try {
@@ -12,64 +25,83 @@ async function main() {
       case 'auth':
         if (subcommand === 'status') {
           await cmd.authStatus();
-        } else if (args[1] && args[2]) {
-          await cmd.authSave(args[1], args[2]);
+        } else if (subcommand === 'list') {
+          await cmd.authList();
+        } else if (subcommand === 'default') {
+          await cmd.authSetDefault(rawArgs[2]);
+        } else if (subcommand === 'delete') {
+          await cmd.authDelete(rawArgs[2]);
+        } else if (rawArgs[1] && rawArgs[2]) {
+          if (rawArgs[3]) {
+            await cmd.authSave(rawArgs[1], rawArgs[2], rawArgs[3]);
+          } else {
+            await cmd.authSave(rawArgs[1], rawArgs[2]);
+          }
         } else {
           console.error('Usage: momo auth <secret> <clientid>');
+          console.error('       momo auth <profile-name> <secret> <clientid>');
           console.error('       momo auth status');
+          console.error('       momo auth default <name>');
           process.exit(1);
         }
         break;
-        
-      case 'sw':
-        if (!subcommand) {
-          await cmd.stopwatchStatus();
-        } else if (subcommand === 'start') {
-          await cmd.stopwatchStart();
-        } else if (subcommand === 'pause') {
-          await cmd.stopwatchPause();
-        } else if (subcommand === 'stop') {
-          await cmd.stopwatchStop();
+
+      case 'sw': {
+        const swArgs = withProfile(rawArgs.slice(1));
+        if (!swArgs.args[0]) {
+          await cmd.stopwatchStatus(swArgs.profileName);
+        } else if (swArgs.args[0] === 'start') {
+          await cmd.stopwatchStart(swArgs.profileName);
+        } else if (swArgs.args[0] === 'pause') {
+          await cmd.stopwatchPause(swArgs.profileName);
+        } else if (swArgs.args[0] === 'stop') {
+          await cmd.stopwatchStop(swArgs.profileName);
         } else {
-          console.error('Usage: momo sw [start|pause|stop]');
+          console.error('Usage: momo sw [--profile NAME] [start|pause|stop]');
           process.exit(1);
         }
         break;
-        
-      case 'log':
-        await cmd.logTime(args.slice(1));
+      }
+
+      case 'log': {
+        const logArgs = withProfile(rawArgs.slice(1));
+        await cmd.logTime(logArgs.args, logArgs.profileName);
         break;
-        
-      case 'status':
-        if (args.includes('--ids')) {
-          await cmd.showStatusWithIds();
-        } else {
-          await cmd.showStatus();
-        }
+      }
+
+      case 'status': {
+        const statusArgs = withProfile(rawArgs.slice(1));
+        await cmd.showStatus(statusArgs.args, statusArgs.profileName);
         break;
-      
-      case 'timelog':
-        if (subcommand === 'delete') {
-          const id = args[2];
-          const force = args.includes('--force');
-          await cmd.deleteTimelog(id, { force });
+      }
+
+      case 'timelog': {
+        const tlArgs = withProfile(rawArgs.slice(1));
+        if (tlArgs.args[0] === 'delete') {
+          const id = tlArgs.args[1];
+          const force = tlArgs.args.includes('--force');
+          await cmd.deleteTimelog(id, { force }, tlArgs.profileName);
         } else {
-          console.error('Usage: momo timelog delete <id> [--force]');
+          console.error('Usage: momo timelog delete <id> [--force] [--profile NAME]');
           process.exit(1);
         }
         break;
-      
-      case 'colors':
-        await cmd.listColors();
+      }
+
+      case 'colors': {
+        const cArgs = withProfile(rawArgs.slice(1));
+        await cmd.listColors(cArgs.profileName);
         break;
-        
+      }
+
       case 'project': {
-        // Parse options for project commands
+        const pArgs = withProfile(rawArgs.slice(1));
+
         const parseProjectOptions = (startIndex) => {
           const options = {};
-          const projectArgs = args.slice(startIndex);
+          const projectArgs = pArgs.args.slice(startIndex);
           let name = null;
-          
+
           for (let i = 0; i < projectArgs.length; i++) {
             if (projectArgs[i] === '--color' && projectArgs[i + 1]) {
               options.color = projectArgs[i + 1];
@@ -83,49 +115,47 @@ async function main() {
               name = projectArgs[i];
             }
           }
-          
+
           return { name, options };
         };
-        
-        if (subcommand === 'list' || !subcommand) {
-          await cmd.listProjects();
-        } else if (subcommand === 'colors') {
-          await cmd.listColors();
-        } else if (subcommand === 'add') {
-          const { name, options } = parseProjectOptions(2);
-          await cmd.addProject(name, options);
-        } else if (subcommand === 'update') {
-          const { name, options } = parseProjectOptions(2);
-          await cmd.updateProject(name, options);
-        } else if (subcommand === 'delete') {
-          const { name, options } = parseProjectOptions(2);
-          await cmd.deleteProject(name, options);
+
+        if (pArgs.args[0] === 'list' || !pArgs.args[0]) {
+          await cmd.listProjects(pArgs.profileName);
+        } else if (pArgs.args[0] === 'colors') {
+          await cmd.listColors(pArgs.profileName);
+        } else if (pArgs.args[0] === 'add') {
+          const { name, options } = parseProjectOptions(1);
+          await cmd.addProject(name, options, pArgs.profileName);
+        } else if (pArgs.args[0] === 'update') {
+          const { name, options } = parseProjectOptions(1);
+          await cmd.updateProject(name, options, pArgs.profileName);
+        } else if (pArgs.args[0] === 'delete') {
+          const { name, options } = parseProjectOptions(1);
+          await cmd.deleteProject(name, options, pArgs.profileName);
         } else {
-          console.error('Usage: momo project list');
-          console.error('       momo project add <name> [--color #hex] [--description "text"]');
-          console.error('       momo project update <name> [--color #hex] [--description "text"]');
-          console.error('       momo project delete <name> [--force]');
+          console.error('Usage: momo project [--profile NAME] list');
+          console.error('       momo project [--profile NAME] add <name>');
           process.exit(1);
         }
         break;
       }
-        
+
       case 'version':
       case '--version':
       case '-v':
-        console.log('momo-cli v1.2.0');
+        console.log(`momo-cli v${VERSION}`);
         break;
-        
+
       case 'help':
       case '--help':
       case '-h':
         cmd.showHelp();
         break;
-        
+
       case undefined:
         cmd.showHelp();
         break;
-        
+
       default:
         console.error(`Unknown command: ${command}`);
         console.error('Run: momo help');
