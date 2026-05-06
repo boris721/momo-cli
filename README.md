@@ -16,6 +16,7 @@ Track your work hours from the terminal. Start a stopwatch, log time to projects
 - **Manual entries** — Add time entries directly (HH:MM format)
 - **Daily status** — View today's timelogs with colored project indicators
 - **Project CRUD** — Create, list, update, and delete projects with custom colors
+- **Multi-account** — Named profiles with `--profile` flag for multiple users
 - **Timelog management** — Delete incorrect timelogs
 - **Zero dependencies** — Uses only Node.js built-in modules (native `fetch`)
 - **Config-driven** — Credentials stored in `~/.config/momo-cli/`
@@ -41,16 +42,21 @@ cd momo-cli
 npm link
 ```
 
-### Setup
-
-Get your API credentials from your momo.coach account settings, then:
+### Authentication
 
 ```bash
-# Store credentials
+# Single account (default profile)
 momo auth <secret_key> <client_id>
 
-# Verify authentication
-momo auth status
+# Multiple accounts
+momo auth paul <secret_key> <client_id>
+momo auth boris <secret_key> <client_id>
+momo auth default paul          # Set default profile
+
+# Manage profiles
+momo auth status                # Show all profiles
+momo auth list                  # List profile names
+momo auth delete boris          # Delete a profile
 ```
 
 ---
@@ -64,6 +70,7 @@ momo sw              # Show current stopwatch status
 momo sw start        # Start the stopwatch
 momo sw pause        # Pause the stopwatch
 momo sw stop         # Stop and reset stopwatch
+momo sw --profile paul    # Use specific profile
 ```
 
 ### Logging Time
@@ -73,6 +80,7 @@ momo sw stop         # Stop and reset stopwatch
 momo sw start
 # ... work ...
 momo log myproject "What I worked on"
+momo log --profile paul myproject "Log to paul's account"
 
 # Manual time entry
 momo log 01:30 myproject "1.5 hours of work"
@@ -81,8 +89,9 @@ momo log 01:30 myproject "1.5 hours of work"
 ### Daily Status
 
 ```bash
-momo status          # Show today's timelogs
-momo status --ids    # Show timelogs with IDs (for deletion)
+momo status          # Show today's timelogs (default profile)
+momo status --profile paul   # Show today's timelogs for paul
+momo status --ids            # Show timelogs with IDs (for deletion)
 ```
 
 Output:
@@ -102,12 +111,14 @@ Each timelog shows a colored square matching the project color.
 ```bash
 momo status --ids                              # Get timelog IDs
 momo timelog delete <id> --force               # Delete a timelog
+momo timelog delete <id> --force --profile paul # On specific profile
 ```
 
 ### Projects
 
 ```bash
 momo project list                              # List all projects
+momo project list --profile paul               # List paul's projects
 momo project add "New Project"                 # Create project
 momo project add "Client X" --color #3498db    # With color
 momo project add "Side Project" --description "Weekend hacking"
@@ -129,16 +140,49 @@ momo help            # Show help
 momo --version       # Show version
 ```
 
+### Options
+
+```bash
+--profile NAME    Use a specific profile (default: uses default profile)
+--force           Confirm destructive actions without prompt
+```
+
+### Environment
+
+```bash
+MOMO_PROFILE      Default profile name (overrides config default)
+```
+
 ---
 
 ## ⚙️ Configuration
 
 Credentials are stored in `~/.config/momo-cli/config.json`:
 
+### Single account (legacy format — auto-migrated)
+
 ```json
 {
   "secret": "sk-...",
   "clientId": "momo-..."
+}
+```
+
+### Multiple accounts (current format)
+
+```json
+{
+  "default": "paul",
+  "profiles": {
+    "paul": {
+      "secret": "sk-...",
+      "clientId": "momo-..."
+    },
+    "boris": {
+      "secret": "sk-...",
+      "clientId": "momo-..."
+    }
+  }
 }
 ```
 
@@ -152,7 +196,7 @@ bin/
 lib/
   api.js             # HTTP client for momo.coach API
   commands.js        # Command implementations
-  config.js          # Config loading/saving
+  config.js          # Config loading/saving (multi-profile)
   format.js          # Time formatting utilities
 test/
   *.test.js          # Unit tests
